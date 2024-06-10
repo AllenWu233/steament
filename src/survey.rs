@@ -32,7 +32,7 @@ impl Section {
 
     // Print the whole section with index or checkboxes
     pub fn print_section(&self, checkbox: bool) {
-        println!("====={}=====", self.title);
+        println!("\n======={}=======", self.title);
         let mut i = 0;
         for item in &self.items {
             if checkbox {
@@ -55,14 +55,11 @@ impl Section {
     }
 
     // Select the checkboxes
-    fn change_checkboxes(&mut self, change_list: Vec<i32>) {
-        todo!()
+    pub fn change_checkboxes(&mut self, change_list: Vec<usize>) {
+        for i in change_list {
+            self.items[i].checked = true;
+        }
     }
-
-    // pub fn action(&mut self) {
-    //     self.print_section(false);
-    //     println!("(输入若干个序号或区间，用空格分隔。如：1 3-4 6)\n(输入b返回上一步)请选择：");
-    // }
 }
 
 impl Survey {
@@ -70,7 +67,7 @@ impl Survey {
         Survey { sections }
     }
 
-    fn read_user_input(&self) -> Option<Vec<i32>> {
+    fn read_user_input(&self) -> Option<Vec<usize>> {
         todo!()
     }
 
@@ -94,5 +91,7 @@ impl Survey {
                 i = i.saturating_sub(1);
             }
         }
+        self.print_result();
+        self.export_to_clipboard();
     }
 }
