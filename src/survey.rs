@@ -30,14 +30,14 @@ impl Section {
         Section { title, items }
     }
 
-    // Print the whole section with index or checkboxes
-    pub fn print_section(&self, checkbox: bool) {
-        println!("\n======={}=======", self.title);
+    // Return a string of the section with index or checkbox
+    pub fn get_result(&self, checkbox: bool) -> String {
+        let mut result = format!("======={}=======\n", self.title);
         let mut i = 0;
         for item in &self.items {
             if checkbox {
-                println!(
-                    "{} {}",
+                result += &format!(
+                    "{} {}\n",
                     {
                         if item.checked {
                             SELECT_CHECKBOX
@@ -46,12 +46,13 @@ impl Section {
                         }
                     },
                     item.content
-                )
+                );
             } else {
-                println!("{}. {}", i, item.content);
+                result += &format!("{}. {}\n", i, item.content);
                 i += 1;
             }
         }
+        result
     }
 
     // Select the checkboxes
@@ -67,31 +68,42 @@ impl Survey {
         Survey { sections }
     }
 
-    fn read_user_input(&self) -> Option<Vec<usize>> {
-        todo!()
-    }
-
-    fn print_result(&self) {
-        todo!()
-    }
-
-    fn export_to_clipboard(&self) {
-        todo!()
+    pub fn print_result(&self) -> String {
+        let mut result = String::new();
+        for section in &self.sections {
+            result += &section.get_result(true);
+            result += "\n";
+        }
+        print!("{}", &result);
+        result
     }
 
     pub fn run(&mut self) {
-        let mut i = 0; // Part counter
+        let mut i = 0; // Section counter
         while i < self.sections.len() {
-            println!("(输入若干个序号或区间，用空格分隔。如：1 3-4 6)\n(输入b返回上一步)请选择：");
-            if let Some(change_list) = self.read_user_input() {
-                let item = &mut self.sections[i];
-                item.change_checkboxes(change_list);
-                i += 1;
-            } else {
-                i = i.saturating_sub(1);
+            let item = &mut self.sections[i];
+            print!("{}", item.get_result(false));
+            print!("(输入若干个序号或区间，用空格分隔。如：1 3-4 6)\n(输入b返回上一步)请选择：");
+
+            match read_user_input() {
+                Some(change_list) if change_list.is_empty() => i = i.saturating_sub(1),
+                Some(change_list) => {
+                    item.change_checkboxes(change_list);
+                    i += 1;
+                }
+                _ => {
+                    println!("不合法输入，请重试。");
+                }
             }
         }
-        self.print_result();
-        self.export_to_clipboard();
+        export_to_clipboard(self.print_result());
     }
+}
+
+fn read_user_input() -> Option<Vec<usize>> {
+    todo!()
+}
+
+fn export_to_clipboard(result: String) {
+    todo!()
 }
