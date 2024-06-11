@@ -1,14 +1,14 @@
+use std::fs;
 use std::io::{self, Write};
 
 const EMPTY_CHECKBOX: &str = "☐";
 const SELECT_CHECKBOX: &str = "✓";
-
 // Single option
-pub struct Item {
+struct Item {
     content: String,
     checked: bool,
 }
-pub struct Section {
+struct Section {
     title: String,
     items: Vec<Item>,
 }
@@ -18,7 +18,7 @@ pub struct Survey {
 }
 
 impl Item {
-    pub fn new(content: String) -> Self {
+    fn new(content: String) -> Self {
         Item {
             content,
             checked: false,
@@ -27,7 +27,7 @@ impl Item {
 }
 
 impl Section {
-    pub fn new(title: String, items: Vec<Item>) -> Self {
+    fn new(title: String, items: Vec<Item>) -> Self {
         Section { title, items }
     }
 
@@ -78,6 +78,29 @@ impl Survey {
         }
         print!("{}", &result);
         result
+    }
+
+    pub fn init_from_file(filename: &str) -> Self {
+        let messages: Vec<_> = fs::read_to_string(filename)
+            .expect(&format!("File {} not existed!", filename))
+            .lines()
+            .collect();
+        let mut sections: Vec<Section> = Vec::new();
+
+        for message in messages {
+            let mut title = "";
+            let mut items: Vec<Item> = Vec::new();
+            if message.len() >= 7 && &message[..7] == "Title: " {
+                title = &message[7..];
+                items = Vec::new();
+            } else if message == "######" {
+                sections.push(Section::new(String::from(title), items));
+            } else if message.is_empty() {
+            } else {
+                items.push(Item::new(String::from(message)));
+            }
+        }
+        Survey::new(sections)
     }
 
     pub fn run(&mut self) {
