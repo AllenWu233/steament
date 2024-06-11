@@ -1,3 +1,5 @@
+use std::io;
+
 const EMPTY_CHECKBOX: &str = "☐";
 const SELECT_CHECKBOX: &str = "✓";
 
@@ -31,7 +33,7 @@ impl Section {
     }
 
     // Return a string of the section with index or checkbox
-    pub fn get_result(&self, checkbox: bool) -> String {
+    fn get_result(&self, checkbox: bool) -> String {
         let mut result = format!("======={}=======\n", self.title);
         let mut i = 0;
         for item in &self.items {
@@ -56,7 +58,7 @@ impl Section {
     }
 
     // Select the checkboxes
-    pub fn change_checkboxes(&mut self, change_list: Vec<usize>) {
+    fn change_checkboxes(&mut self, change_list: Vec<usize>) {
         for i in change_list {
             self.items[i].checked = true;
         }
@@ -68,7 +70,7 @@ impl Survey {
         Survey { sections }
     }
 
-    pub fn print_result(&self) -> String {
+    fn print_result(&self) -> String {
         let mut result = String::new();
         for section in &self.sections {
             result += &section.get_result(true);
@@ -83,25 +85,65 @@ impl Survey {
         while i < self.sections.len() {
             let item = &mut self.sections[i];
             print!("{}", item.get_result(false));
-            print!("(输入若干个序号或区间，用空格分隔。如：1 3-4 6)\n(输入b返回上一步)请选择：");
+            print!(
+                "\n# 输入若干个序号或区间，用空格分隔。如：1 3-4 6\n# 输入b返回上一步。请选择："
+            );
 
-            match read_user_input() {
+            match read_user_input(item.items.len()) {
+                // Previous
                 Some(change_list) if change_list.is_empty() => i = i.saturating_sub(1),
+                // Next
                 Some(change_list) => {
                     item.change_checkboxes(change_list);
                     i += 1;
                 }
-                _ => {
-                    println!("不合法输入，请重试。");
-                }
+                _ => println!("不合法输入，请重试。"),
             }
         }
         export_to_clipboard(self.print_result());
     }
 }
 
-fn read_user_input() -> Option<Vec<usize>> {
-    todo!()
+fn read_user_input(len: usize) -> Option<Vec<usize>> {
+    let mut buffer = String::new();
+    let stdin = io::stdin();
+    let _ = stdin.read_line(&mut buffer);
+    // Previous
+    if buffer == "b" {
+        Some(Vec::new())
+    }
+    // Next
+    else {
+        let tmp: Vec<_> = buffer.split(' ').collect();
+        let mut change_list: Vec<usize> = Vec::new();
+        for i in tmp {
+            // Single option
+            if let Ok(index) = String::from(i).parse::<usize>() {
+                if index >= len {
+                    return None;
+                }
+                change_list.push(index);
+            }
+            // Adjective
+            else if let Some(t) = i.find('-') {
+                if let (Ok(left), Ok(right)) = (
+                    String::from(i)[..t].parse::<usize>(),
+                    String::from(i)[t..].parse::<usize>(),
+                ) {
+                    if left <= right && right < len {
+                        for index in left..=right {
+                            change_list.push(index);
+                        }
+                    }
+                }
+            } else {
+                return None;
+            }
+        }
+        change_list.sort_unstable();
+        println!("{:?}", &change_list);
+        Some(change_list)
+    }
 }
 
 fn export_to_clipboard(result: String) {
