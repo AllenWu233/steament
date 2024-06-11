@@ -1,3 +1,5 @@
+use std::io::{self, Write};
+
 const EMPTY_CHECKBOX: &str = "☐";
 const SELECT_CHECKBOX: &str = "✓";
 
@@ -6,7 +8,6 @@ pub struct Item {
     content: String,
     checked: bool,
 }
-
 pub struct Section {
     title: String,
     items: Vec<Item>,
@@ -84,9 +85,11 @@ impl Survey {
         while i < self.sections.len() {
             let item = &mut self.sections[i];
             print!("\n{}", item.get_result(false));
-            println!("# 输入若干个序号或区间，用空格分隔。如：1 3-4 6");
-            print!("# 输入b返回上一步。请选择：");
-            match read_user_input(item.items.len()) {
+            println!(
+                "# 输入若干个序号或区间，用空格分隔。如：1 3-4 6\n# 输入b返回上一步。请选择："
+            );
+            let _ = io::stdout().flush();
+            match get_change_list(item.items.len()) {
                 // Previous
                 Some(change_list) if change_list.is_empty() => i = i.saturating_sub(1),
                 // Next
@@ -102,15 +105,19 @@ impl Survey {
     }
 }
 
-// Read from stdin and return a change_list vector with enumeration
-fn read_user_input(len: usize) -> Option<Vec<usize>> {
+// Read from stdin and return a string
+fn input() -> String {
     // Read from stdin
     let mut buffer = String::new();
-    let stdin = std::io::stdin();
+    let stdin = io::stdin();
     let _ = stdin.read_line(&mut buffer);
-    buffer = String::from(buffer.trim()); // Remove '\n' in the end
+    String::from(buffer.trim()) // Remove '\n' in the end
+}
 
+// Get a change list from user input
+fn get_change_list(len: usize) -> Option<Vec<usize>> {
     // Previous section
+    let buffer = input();
     if buffer == "b" {
         Some(Vec::new())
     }
