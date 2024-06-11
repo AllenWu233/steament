@@ -1,5 +1,3 @@
-use std::io;
-
 const EMPTY_CHECKBOX: &str = "☐";
 const SELECT_CHECKBOX: &str = "✓";
 
@@ -70,6 +68,7 @@ impl Survey {
         Survey { sections }
     }
 
+    // Print the whole comment and return a string
     fn print_result(&self) -> String {
         let mut result = String::new();
         for section in &self.sections {
@@ -84,11 +83,9 @@ impl Survey {
         let mut i = 0; // Section counter
         while i < self.sections.len() {
             let item = &mut self.sections[i];
-            print!("{}", item.get_result(false));
-            print!(
-                "\n# 输入若干个序号或区间，用空格分隔。如：1 3-4 6\n# 输入b返回上一步。请选择："
-            );
-
+            print!("\n{}", item.get_result(false));
+            println!("# 输入若干个序号或区间，用空格分隔。如：1 3-4 6");
+            print!("# 输入b返回上一步。请选择：");
             match read_user_input(item.items.len()) {
                 // Previous
                 Some(change_list) if change_list.is_empty() => i = i.saturating_sub(1),
@@ -100,19 +97,24 @@ impl Survey {
                 _ => println!("不合法输入，请重试。"),
             }
         }
-        export_to_clipboard(self.print_result());
+        self.print_result();
+        // export_to_clipboard(self.print_result());
     }
 }
 
+// Read from stdin and return a change_list vector with enumeration
 fn read_user_input(len: usize) -> Option<Vec<usize>> {
+    // Read from stdin
     let mut buffer = String::new();
-    let stdin = io::stdin();
+    let stdin = std::io::stdin();
     let _ = stdin.read_line(&mut buffer);
-    // Previous
+    buffer = String::from(buffer.trim()); // Remove '\n' in the end
+
+    // Previous section
     if buffer == "b" {
         Some(Vec::new())
     }
-    // Next
+    // Next section
     else {
         let tmp: Vec<_> = buffer.split(' ').collect();
         let mut change_list: Vec<usize> = Vec::new();
@@ -128,20 +130,28 @@ fn read_user_input(len: usize) -> Option<Vec<usize>> {
             else if let Some(t) = i.find('-') {
                 if let (Ok(left), Ok(right)) = (
                     String::from(i)[..t].parse::<usize>(),
-                    String::from(i)[t..].parse::<usize>(),
+                    String::from(i)[t + 1..].parse::<usize>(),
                 ) {
                     if left <= right && right < len {
                         for index in left..=right {
                             change_list.push(index);
                         }
+                    } else {
+                        return None;
                     }
+                } else {
+                    return None;
                 }
             } else {
                 return None;
             }
         }
+
+        // Unique the vector
+        let unique = std::collections::BTreeSet::from_iter(change_list);
+        let mut change_list = unique.into_iter().collect::<Vec<_>>();
         change_list.sort_unstable();
-        println!("{:?}", &change_list);
+
         Some(change_list)
     }
 }
