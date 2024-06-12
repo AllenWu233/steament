@@ -1,8 +1,11 @@
 use std::fs;
 use std::io::{self, Write};
+use std::process::{Command, Stdio};
 
 const EMPTY_CHECKBOX: &str = "☐";
 const SELECT_CHECKBOX: &str = "✓";
+
+#[derive(Clone)]
 // Single option
 struct Item {
     content: String,
@@ -14,6 +17,7 @@ struct Section {
 }
 
 pub struct Survey {
+    game: String,
     sections: Vec<Section>,
 }
 
@@ -65,45 +69,55 @@ impl Section {
 }
 
 impl Survey {
-    pub fn new(sections: Vec<Section>) -> Self {
-        Survey { sections }
+    fn new(game: String, sections: Vec<Section>) -> Self {
+        Survey { game, sections }
     }
 
-    // Print the whole comment and return a string
-    fn print_result(&self) -> String {
-        let mut result = String::new();
+    // Get the whole comment
+    fn get_result(&self) -> String {
+        let mut result = format!("游戏名：{}\n", self.game);
         for section in &self.sections {
             result += &section.get_result(true);
             result += "\n";
         }
-        print!("{}", &result);
         result
     }
 
+    // Read comment template from specific file to create a Survey
     pub fn init_from_file(filename: &str) -> Self {
-        let messages: Vec<_> = fs::read_to_string(filename)
-            .expect(&format!("File {} not existed!", filename))
-            .lines()
-            .collect();
+        let file_content = fs::read_to_string(filename)
+            .unwrap_or_else(|_| panic!("File {} not existed!", filename));
+        let messages: Vec<_> = file_content.lines().collect();
+        let mut title = "";
         let mut sections: Vec<Section> = Vec::new();
-
+        let mut items: Vec<Item> = Vec::new();
         for message in messages {
-            let mut title = "";
-            let mut items: Vec<Item> = Vec::new();
-            if message.len() >= 7 && &message[..7] == "Title: " {
-                title = &message[7..];
-                items = Vec::new();
+            // if message.len() >= 7 && &message[..7] == "Title: " {
+            if utf8_slice::len(message) >= 7 && utf8_slice::till(message, 7) == "Title: " {
+                title = utf8_slice::from(message, 7);
+                // items = Vec::new();
+                items.clear();
             } else if message == "######" {
-                sections.push(Section::new(String::from(title), items));
+                sections.push(Section::new(String::from(title), items.clone()));
             } else if message.is_empty() {
             } else {
                 items.push(Item::new(String::from(message)));
             }
         }
-        Survey::new(sections)
+        Survey::new(String::new(), sections)
     }
 
     pub fn run(&mut self) {
+        self.game = loop {
+            print!("# 游戏名：");
+            let _ = io::stdout().flush();
+            if let Ok(game) = input() {
+                break game;
+            } else {
+                println!("不合法输入，请重试。");
+            }
+        };
+
         let mut i = 0; // Section counter
         while i < self.sections.len() {
             let item = &mut self.sections[i];
@@ -123,30 +137,39 @@ impl Survey {
                 _ => println!("不合法输入，请重试。"),
             }
         }
-        self.print_result();
-        // export_to_clipboard(self.print_result());
+
+        let result = self.get_result();
+        println!("\n{}", &result);
+        if export_to_clipboard(result).is_ok() {
+            println!("结果已复制到剪贴板！");
+        } else {
+            println!("结果未能复制到剪贴板！");
+        }
     }
 }
 
 // Read from stdin and return a string
-fn input() -> String {
+fn input() -> Result<String, ()> {
     // Read from stdin
-    let mut buffer = String::new();
-    let stdin = io::stdin();
-    let _ = stdin.read_line(&mut buffer);
-    String::from(buffer.trim()) // Remove '\n' in the end
+    let mut input = String::new();
+    match io::stdin().read_line(&mut input) {
+        Ok(_) => Ok(String::from(input.trim())), // Remove '\n' in the end
+        Err(error) => Err(println!("error: {error}")),
+    }
 }
 
 // Get a change list from user input
 fn get_change_list(len: usize) -> Option<Vec<usize>> {
     // Previous section
-    let buffer = input();
-    if buffer == "b" {
+    let Ok(input) = input() else {
+        return None;
+    };
+    if input == "b" {
         Some(Vec::new())
     }
     // Next section
     else {
-        let tmp: Vec<_> = buffer.split(' ').collect();
+        let tmp: Vec<_> = input.split(' ').collect();
         let mut change_list: Vec<usize> = Vec::new();
         for i in tmp {
             // Single option
@@ -178,14 +201,30 @@ fn get_change_list(len: usize) -> Option<Vec<usize>> {
         }
 
         // Unique the vector
-        let unique = std::collections::BTreeSet::from_iter(change_list);
-        let mut change_list = unique.into_iter().collect::<Vec<_>>();
-        change_list.sort_unstable();
+        // let unique = std::collections::BTreeSet::from_iter(change_list);
+        // let mut change_list = unique.into_iter().collect::<Vec<_>>();
+        // change_list.sort_unstable();
 
         Some(change_list)
     }
 }
 
-fn export_to_clipboard(result: String) {
-    todo!()
+// Copy the result to system clipboard, require xsel
+fn export_to_clipboard(result: String) -> Result<(), ()> {
+    let echo_child = Command::new("echo")
+        .arg(result)
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Failed to start echo process");
+    let echo_out = echo_child.stdout.expect("Failed to open echo stdout");
+    let status = Command::new("xsel")
+        .arg("-bi")
+        .stdin(Stdio::from(echo_out))
+        .stdout(Stdio::piped())
+        .status()
+        .expect("Failed to start xsel process");
+    if status.success() {
+        return Ok(());
+    }
+    Err(())
 }
