@@ -6,7 +6,7 @@ Generate a game comment by choosing options.
 
 Inspired by game comments from Steam.
 
-[![asciicast](https://asciinema.org/a/663637.svg)](https://asciinema.org/a/663637)
+[![asciicast](https://asciinema.org/a/663655.svg)](https://asciinema.org/a/663655)
 
 ## Install
 
