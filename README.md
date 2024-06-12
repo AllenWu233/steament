@@ -223,4 +223,4 @@ selected_checkbox: "✓"
 
 - [ ] Steam text formatting support
 - [ ] CLI options
-- [ ] Use custom template
+- [ ] Custom template
