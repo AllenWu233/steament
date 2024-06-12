@@ -2,14 +2,55 @@
 
 ## Game Questionnaire Style Comment Generator
 
-Use for games' store, such as steam.
-Generate a comment by choosing options.
+Generate a game comment by choosing options.
 
-Inspired by comments from steam.
+Inspired by game comments from Steam.
+
+## Installation
+
+```bash
+git clone https://github.com/AllenWu233/steament
+cd steament
+cargo build --release
+```
+
+## Usage
+
+```bash
+steament
+
+
+```
+
+## Survey Template Syntax
+
+### Default
+
+Default template: [template.txt](template.txt)
+
+### A Basic Section Example
+
+```text
+Title: <section1_title>
+<option1>
+<option2>
+<...>
+######
+
+Title: <section2_title>
+<option1>
+<option2>
+<...>
+######
+```
+
+The first line of a section must begin with 'Title: '
+The last line must be '######'
+Empty lines doesn't matter
 
 ## Survey Example
 
-```
+```text
 empty_checkbox: "☐"
 selected_checkbox: "✓"
 

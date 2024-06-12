@@ -4,7 +4,8 @@ use std::process::{Command, Stdio};
 
 const EMPTY_CHECKBOX: &str = "☐";
 const SELECT_CHECKBOX: &str = "✓";
-const TAIL: &str = "——该评论使用[url=https://github.com/AllenWu233/steament]steament[/url]生成";
+// const TAIL: &str = "——该评论使用[url=https://github.com/AllenWu233/steament]steament[/url]生成";
+const TAIL: &str = "——该评论使用steament(github/AllenWu233/steament)生成";
 
 #[derive(Clone)]
 // Single option
@@ -84,11 +85,9 @@ impl Survey {
         result + TAIL
     }
 
-    // Read comment template from specific file to create a Survey
-    pub fn init_from_file(filename: &str) -> Self {
-        let file_content = fs::read_to_string(filename)
-            .unwrap_or_else(|_| panic!("File {} not existed!", filename));
-        let messages: Vec<_> = file_content.lines().collect();
+    // Create a Survey from content of template.txt
+    pub fn init_from_string(s: String) -> Self {
+        let messages: Vec<_> = s.lines().collect();
         let mut title = "";
         let mut sections: Vec<Section> = Vec::new();
         let mut items: Vec<Item> = Vec::new();
@@ -106,6 +105,13 @@ impl Survey {
             }
         }
         Survey::new(String::new(), sections)
+    }
+
+    // Read comment template from specific file to create a Survey
+    pub fn init_from_file(filename: &str) -> Self {
+        let file_content = fs::read_to_string(filename)
+            .unwrap_or_else(|_| panic!("File {} not existed!", filename));
+        Self::init_from_string(file_content)
     }
 
     pub fn run(&mut self) {
