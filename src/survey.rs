@@ -4,6 +4,7 @@ use std::process::{Command, Stdio};
 
 const EMPTY_CHECKBOX: &str = "☐";
 const SELECT_CHECKBOX: &str = "✓";
+const TAIL: &str = "——该评论使用[url=https://github.com/AllenWu233/steament]steament[/url]生成";
 
 #[derive(Clone)]
 // Single option
@@ -80,7 +81,7 @@ impl Survey {
             result += &section.get_result(true);
             result += "\n";
         }
-        result
+        result + TAIL
     }
 
     // Read comment template from specific file to create a Survey
@@ -114,7 +115,7 @@ impl Survey {
             if let Ok(game) = input() {
                 break game;
             } else {
-                println!("不合法输入，请重试。");
+                println!("# 不合法输入，请重试。");
             }
         };
 
@@ -134,16 +135,16 @@ impl Survey {
                     item.change_checkboxes(change_list);
                     i += 1;
                 }
-                _ => println!("不合法输入，请重试。"),
+                _ => println!("# 不合法输入，请重试。"),
             }
         }
 
         let result = self.get_result();
         println!("\n{}", &result);
         if export_to_clipboard(result).is_ok() {
-            println!("结果已复制到剪贴板！");
+            println!("\n# 结果已复制到剪贴板！");
         } else {
-            println!("结果未能复制到剪贴板！");
+            println!("\n# 结果未能复制到剪贴板！");
         }
     }
 }
