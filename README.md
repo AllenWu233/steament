@@ -50,7 +50,9 @@ Title: <section2_title>
 ```
 
 The first line of a section must begin with 'Title: '
+
 The last line must be '######'
+
 Empty lines doesn't matter
 
 ## Survey Example
