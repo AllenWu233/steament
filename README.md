@@ -211,3 +211,9 @@ selected_checkbox: "✓"
 ☐ 育碧
 ☐ 模拟山羊
 ```
+
+## TODO
+
+- [] Steam text formatting support
+- [] CLI options
+- [] Use custom template

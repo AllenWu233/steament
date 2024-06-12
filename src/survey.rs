@@ -1,11 +1,7 @@
+use crate::template::{EMPTY_CHECKBOX, SELECT_CHECKBOX, TAIL};
 use std::fs;
 use std::io::{self, Write};
 use std::process::{Command, Stdio};
-
-const EMPTY_CHECKBOX: &str = "☐";
-const SELECT_CHECKBOX: &str = "✓";
-// const TAIL: &str = "——该评论使用[url=https://github.com/AllenWu233/steament]steament[/url]生成";
-const TAIL: &str = "——该评论使用steament(github/AllenWu233/steament)生成";
 
 #[derive(Clone)]
 // Single option
@@ -108,7 +104,7 @@ impl Survey {
     }
 
     // Read comment template from specific file to create a Survey
-    pub fn init_from_file(filename: &str) -> Self {
+    pub fn _init_from_file(filename: &str) -> Self {
         let file_content = fs::read_to_string(filename)
             .unwrap_or_else(|_| panic!("File {} not existed!", filename));
         Self::init_from_string(file_content)
@@ -130,12 +126,18 @@ impl Survey {
             let item = &mut self.sections[i];
             print!("\n{}", item.get_result(false));
             println!(
-                "# 输入若干个序号或区间，用空格分隔。如：1 3-4 6\n# 输入b返回上一步。请选择："
+                "# 输入若干个序号或区间，用单个空格分隔。如：1 3-4 6\n# 输入b返回上一步。请选择："
             );
             let _ = io::stdout().flush();
             match get_change_list(item.items.len()) {
                 // Previous
-                Some(change_list) if change_list.is_empty() => i = i.saturating_sub(1),
+                Some(change_list) if change_list.is_empty() => {
+                    if i == 0 {
+                        println!("# 已在第一个部分！")
+                    } else {
+                        i -= 1;
+                    }
+                }
                 // Next
                 Some(change_list) => {
                     item.change_checkboxes(change_list);
@@ -171,7 +173,7 @@ fn get_change_list(len: usize) -> Option<Vec<usize>> {
     let Ok(input) = input() else {
         return None;
     };
-    if input == "b" {
+    if input == "b" || input == "B" {
         Some(Vec::new())
     }
     // Next section
