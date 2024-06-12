@@ -5,6 +5,8 @@
 Use for games' store, such as steam.
 Generate a comment by choosing options.
 
+Inspired with comments from steam.
+
 ## Survey Example
 
 ```
