@@ -6,19 +6,24 @@ Generate a game comment by choosing options.
 
 Inspired by game comments from Steam.
 
-## Installation
+## Install
 
 ```bash
 git clone https://github.com/AllenWu233/steament
 cd steament
-cargo build --release
+cargo install --path .
+```
+
+## Uninstall
+
+```bash
+cargo uninstall steament
 ```
 
 ## Usage
 
 ```bash
 steament
-
 
 ```
 
