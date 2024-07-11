@@ -1,9 +1,3 @@
-pub const EMPTY_CHECKBOX: &str = "☐";
-pub const SELECT_CHECKBOX: &str = "✓";
-
-// pub const TAIL: &str = "——该评论使用[url=https://github.com/AllenWu233/steament]steament[/url]生成";
-pub const TAIL: &str = "——该评论使用 steament(github/AllenWu233/steament) 生成";
-
 pub const TEMPLATE: &str = "Title: 大小
 百兆小游戏
 1-5 G
