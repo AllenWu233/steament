@@ -1,7 +1,7 @@
 use super::{item::Item, section::Section};
 use crate::template::TEMPLATE;
+use crate::utils::constant::TAIL;
 use crate::utils::tools::{export_to_clipboard, get_change_list, input};
-use crate::utils::value::TAIL;
 
 use std::{fs, io, io::Write};
 

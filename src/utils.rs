@@ -1,4 +1,4 @@
-pub mod value {
+pub mod constant {
     pub const EMPTY_CHECKBOX: &str = "☐";
     pub const SELECT_CHECKBOX: &str = "✓";
 

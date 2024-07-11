@@ -1,5 +1,5 @@
 use super::item::Item;
-use crate::utils::value::{EMPTY_CHECKBOX, SELECT_CHECKBOX};
+use crate::utils::constant::{EMPTY_CHECKBOX, SELECT_CHECKBOX};
 
 pub struct Section {
     title: String,
